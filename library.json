@@ -17,15 +17,16 @@
     "build": {
         "flags":[
             "-Iglad/include",
-            "-Iimgui",
             "-Iglfw",
             "-Lglfw",
             "-lglfw3",
             "-lgdi32",
             "-lopengl32"
-        ]
+        ],
+        "extraScript": "extra_script.py"
     },
     "dependencies":{
-        "box2d" : "https://github.com/erincatto/box2d.git#v2.4.1"
+        "box2d" : "https://github.com/erincatto/box2d.git#v2.4.1",
+        "imgui" : "https://github.com/ocornut/imgui#v1.89.8"
     }
   }
