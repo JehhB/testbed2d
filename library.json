@@ -17,6 +17,7 @@
     "build": {
         "flags":[
             "-Iglad/include",
+            "-Iimgui",
             "-Iglfw",
             "-Lglfw",
             "-lglfw3",
