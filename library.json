@@ -1,8 +1,19 @@
 {
     "$schema": "https://raw.githubusercontent.com/platformio/platformio-core/develop/platformio/assets/schema/library.json",
-    "name": "testbed",
+    "name": "testbed2d",
     "platforms": ["windows_x86"],
     "version": "1.0.0",
+    "description" : "Testbed2D is a 2D graphical simulator for simulating/testing.",
+    "keywords":["simulator"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/JehhB/testbed2d"
+    },
+    "authors": {
+        "name": "Jerico Wayne Bayod",
+        "email": "jwy.bayod@gmail.com",
+        "maintainer": true
+    },
     "build": {
         "flags":[
             "-Iglfw",
