@@ -16,13 +16,13 @@
     },
     "build": {
         "flags":[
+            "-Iglad/include",
             "-Iglfw",
             "-Lglfw",
             "-lglfw3",
             "-lgdi32",
             "-lopengl32"
-        ],
-        "extraScript": "extra_script.py"
+        ]
     },
     "dependencies":{
         "box2d" : "https://github.com/erincatto/box2d.git#v2.4.1"

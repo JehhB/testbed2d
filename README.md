@@ -5,11 +5,13 @@ It is created using [Box2D](https://box2d.org/) and [Dear ImGui](https://github.
 
 ## Installation
 
-Create an environment with Windows x86 platform then include Testbed2D as a dependency
+Create an environment with Windows x86 platform then include Testbed2D as a dependency. Besure to add `-std=gnu++11` as `build_flags`.
 
 ```ini
 [env:simulator]
 platform = platformio/windows_x86@^1.2.0
 lib_deps =
   https://github.com/JehhB/testbed2d.git
+build_flags = 
+  "-std=gnu++11"
 ```
