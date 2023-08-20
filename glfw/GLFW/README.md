@@ -1,0 +1,1 @@
+This header and binaries are mingw-w64 libraries for GLFW 3.3.8
