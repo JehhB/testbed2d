@@ -16,6 +16,7 @@
     },
     "build": {
         "flags":[
+            "-Iinclude",
             "-Iglad/include",
             "-Iglfw",
             "-Lglfw",
@@ -23,6 +24,7 @@
             "-lgdi32",
             "-lopengl32"
         ],
+        "srcDir": ".",
         "extraScript": "extra_script.py"
     },
     "dependencies":{
