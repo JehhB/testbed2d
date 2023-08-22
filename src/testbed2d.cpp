@@ -10,6 +10,7 @@ static void createUI(GLFWwindow *window);
 static void destroyUI();
 static void errorCallback(int error, const char *description);
 static void framebufferSizeCallback(GLFWwindow *window, int width, int height);
+static void listTests(std::set<Test *> &tests);
 
 Testbed2D *Testbed2D::INSTANCE = nullptr;
 Testbed2D *Testbed2D::getInstance()
@@ -98,9 +99,17 @@ void Testbed2D::start()
 
 void Testbed2D::onDraw()
 {
-    ImGui::Begin("Hello, ImGui!");
-    ImGui::Text("This is a simple ImGui window.");
-    ImGui::End();
+    if (ImGui::BeginMainMenuBar())
+    {
+        if (ImGui::BeginMenu("Tests"))
+        {
+            listTests(tests);
+            ImGui::EndMenu();
+        }
+        // Add more menu items here...
+
+        ImGui::EndMainMenuBar();
+    }
 
     glClearColor(1.0f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -111,6 +120,16 @@ void Testbed2D::onWindowResize(int width, int height)
     viewport.width = width;
     viewport.height = height;
     glViewport(0, 0, width, height);
+}
+
+void Testbed2D::registerTest(Test *test)
+{
+    tests.insert(test);
+}
+
+void Testbed2D::removeTest(Test *test)
+{
+    tests.erase(test);
 }
 
 static void createUI(GLFWwindow *window)
@@ -146,4 +165,21 @@ static void errorCallback(int error, const char *description)
 static void framebufferSizeCallback(GLFWwindow *window, int width, int height)
 {
     Testbed2D::getInstance()->onWindowResize(width, height);
+}
+
+static void listTests(std::set<Test *> &tests)
+{
+    if (tests.size() == 0)
+    {
+        ImGui::TextDisabled("No test registered");
+        return;
+    }
+
+    for (Test *test : tests)
+    {
+        if (ImGui::MenuItem(test->getTestName(), NULL, nullptr))
+        {
+            // TODO: switch test
+        }
+    }
 }
