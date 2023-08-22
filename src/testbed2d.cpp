@@ -22,10 +22,19 @@ Testbed2D *Testbed2D::getInstance()
     return INSTANCE;
 }
 
+void Testbed2D::destoyInstance(Testbed2D *instance)
+{
+    delete instance;
+}
+
 Testbed2D::Testbed2D()
 {
-    viewport.width = INITIAL_WINDOW_WIDTH;
-    viewport.height = INITIAL_WINDOW_HEIGHT;
+    debugDraw.viewport = &viewport;
+}
+
+Testbed2D::~Testbed2D()
+{
+    debugDraw.Destroy();
 }
 
 void Testbed2D::start()
@@ -70,6 +79,7 @@ void Testbed2D::start()
     }
 
     createUI(window);
+    debugDraw.Create();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -78,13 +88,16 @@ void Testbed2D::start()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        onDraw();
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         ImGui::Begin("Hello, ImGui!");
         ImGui::Text("This is a simple ImGui window.");
         ImGui::End();
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        onDrawMenuBar();
+        onDraw();
+        debugDraw.Flush();
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -97,7 +110,7 @@ void Testbed2D::start()
     glfwTerminate();
 }
 
-void Testbed2D::onDraw()
+void Testbed2D::onDrawMenuBar()
 {
     if (ImGui::BeginMainMenuBar())
     {
@@ -110,9 +123,16 @@ void Testbed2D::onDraw()
 
         ImGui::EndMainMenuBar();
     }
+}
 
-    glClearColor(1.0f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+void Testbed2D::onDraw()
+{
+    b2Color color{1.0f, 0.0f, 0.0f};
+    b2Vec2 center{0, 0};
+    debugDraw.DrawCircle(center, 1.0f, color);
+    b2Vec2 start{-1, -1};
+    b2Vec2 end{1, 1};
+    debugDraw.DrawSegment(start, end, color);
 }
 
 void Testbed2D::onWindowResize(int width, int height)
