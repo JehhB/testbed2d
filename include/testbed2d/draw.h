@@ -1,39 +1,63 @@
-#ifndef TESTBED_DRAW_H
-#define TESTBED_DRAW_H
+// MIT License
 
-#include <glad/glad.h>
+// Copyright (c) 2019 Erin Catto
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+#ifndef TESTBED2D_DRAW_H
+#define TESTBED2D_DRAW_H
+
 #define GLFW_INCLUDE_NONE
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <box2d/box2d.h>
 
-#define INITIAL_WINDOW_WIDTH 854
-#define INITIAL_WINDOW_HEIGHT 640
-
+struct b2AABB;
 struct GLRenderPoints;
 struct GLRenderLines;
 struct GLRenderTriangles;
+struct GLFWwindow;
 
-struct Viewport
+//
+struct Camera
 {
-	Viewport()
+	Camera()
 	{
-		width = INITIAL_WINDOW_WIDTH;
-		height = INITIAL_WINDOW_HEIGHT;
-		zoom = 1.0f;
-		center.Set(0.0f, 0.0f);
+		m_center.Set(0.0f, 20.0f);
+		m_zoom = 1.0f;
+		m_width = 1280;
+		m_height = 800;
 	}
 
-	int height;
-	int width;
-	float zoom;
-	b2Vec2 center;
+	b2Vec2 ConvertScreenToWorld(const b2Vec2 &screenPoint);
+	b2Vec2 ConvertWorldToScreen(const b2Vec2 &worldPoint);
+	void BuildProjectionMatrix(float *m, float zBias);
 
-	b2Vec2 convertScreenToWorld(const b2Vec2 &ps);
-	b2Vec2 convertWorldToScreen(const b2Vec2 &pw);
-	void buildProjectionMatrix(float *m, float zBias);
+	b2Vec2 m_center;
+	float m_zoom;
+	int32 m_width;
+	int32 m_height;
 };
 
+// This class implements debug drawing callbacks that are invoked
+// inside b2World::Step.
 class DebugDraw : public b2Draw
 {
 public:
@@ -65,11 +89,14 @@ public:
 
 	void Flush();
 
-	bool showUI;
-	GLRenderPoints *points;
-	GLRenderLines *lines;
-	GLRenderTriangles *triangles;
-	Viewport *viewport;
+	bool m_showUI;
+	GLRenderPoints *m_points;
+	GLRenderLines *m_lines;
+	GLRenderTriangles *m_triangles;
 };
+
+extern DebugDraw g_debugDraw;
+extern Camera g_camera;
+extern GLFWwindow *g_mainWindow;
 
 #endif

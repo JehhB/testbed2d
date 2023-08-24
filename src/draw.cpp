@@ -1,5 +1,26 @@
-#include <testbed2d/draw.h>
+// MIT License
 
+// Copyright (c) 2019 Erin Catto
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+#include <testbed2d/draw.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -8,19 +29,23 @@
 
 #define BUFFER_OFFSET(x) ((const void *)(x))
 
-b2Vec2 Viewport::convertScreenToWorld(const b2Vec2 &ps)
+DebugDraw g_debugDraw;
+Camera g_camera;
+
+//
+b2Vec2 Camera::ConvertScreenToWorld(const b2Vec2 &ps)
 {
-	float w = float(width);
-	float h = float(height);
+	float w = float(m_width);
+	float h = float(m_height);
 	float u = ps.x / w;
 	float v = (h - ps.y) / h;
 
 	float ratio = w / h;
 	b2Vec2 extents(ratio * 25.0f, 25.0f);
-	extents *= zoom;
+	extents *= m_zoom;
 
-	b2Vec2 lower = center - extents;
-	b2Vec2 upper = center + extents;
+	b2Vec2 lower = m_center - extents;
+	b2Vec2 upper = m_center + extents;
 
 	b2Vec2 pw;
 	pw.x = (1.0f - u) * lower.x + u * upper.x;
@@ -28,16 +53,17 @@ b2Vec2 Viewport::convertScreenToWorld(const b2Vec2 &ps)
 	return pw;
 }
 
-b2Vec2 Viewport::convertWorldToScreen(const b2Vec2 &pw)
+//
+b2Vec2 Camera::ConvertWorldToScreen(const b2Vec2 &pw)
 {
-	float w = float(width);
-	float h = float(height);
+	float w = float(m_width);
+	float h = float(m_height);
 	float ratio = w / h;
 	b2Vec2 extents(ratio * 25.0f, 25.0f);
-	extents *= zoom;
+	extents *= m_zoom;
 
-	b2Vec2 lower = center - extents;
-	b2Vec2 upper = center + extents;
+	b2Vec2 lower = m_center - extents;
+	b2Vec2 upper = m_center + extents;
 
 	float u = (pw.x - lower.x) / (upper.x - lower.x);
 	float v = (pw.y - lower.y) / (upper.y - lower.y);
@@ -48,16 +74,18 @@ b2Vec2 Viewport::convertWorldToScreen(const b2Vec2 &pw)
 	return ps;
 }
 
-void Viewport::buildProjectionMatrix(float *m, float zBias)
+// Convert from world coordinates to normalized device coordinates.
+// http://www.songho.ca/opengl/gl_projectionmatrix.html
+void Camera::BuildProjectionMatrix(float *m, float zBias)
 {
-	float w = float(width);
-	float h = float(height);
+	float w = float(m_width);
+	float h = float(m_height);
 	float ratio = w / h;
 	b2Vec2 extents(ratio * 25.0f, 25.0f);
-	extents *= zoom;
+	extents *= m_zoom;
 
-	b2Vec2 lower = center - extents;
-	b2Vec2 upper = center + extents;
+	b2Vec2 lower = m_center - extents;
+	b2Vec2 upper = m_center + extents;
 
 	m[0] = 2.0f / (upper.x - lower.x);
 	m[1] = 0.0f;
@@ -80,6 +108,7 @@ void Viewport::buildProjectionMatrix(float *m, float zBias)
 	m[15] = 1.0f;
 }
 
+//
 static void sCheckGLError()
 {
 	GLenum errCode = glGetError();
@@ -90,6 +119,7 @@ static void sCheckGLError()
 	}
 }
 
+// Prints shader compilation errors
 static void sPrintLog(GLuint object)
 {
 	GLint log_length = 0;
@@ -160,11 +190,6 @@ static GLuint sCreateShaderProgram(const char *vs, const char *fs)
 //
 struct GLRenderPoints
 {
-	GLRenderPoints(Viewport *vp)
-	{
-		viewport = vp;
-	}
-
 	void Create()
 	{
 		const char *vs =
@@ -190,33 +215,33 @@ struct GLRenderPoints
 			"	color = f_color;\n"
 			"}\n";
 
-		programId = sCreateShaderProgram(vs, fs);
-		projectionUniform = glGetUniformLocation(programId, "projectionMatrix");
-		vertexAttribute = 0;
-		colorAttribute = 1;
-		sizeAttribute = 2;
+		m_programId = sCreateShaderProgram(vs, fs);
+		m_projectionUniform = glGetUniformLocation(m_programId, "projectionMatrix");
+		m_vertexAttribute = 0;
+		m_colorAttribute = 1;
+		m_sizeAttribute = 2;
 
 		// Generate
-		glGenVertexArrays(1, &vaoId);
-		glGenBuffers(3, vboIds);
+		glGenVertexArrays(1, &m_vaoId);
+		glGenBuffers(3, m_vboIds);
 
-		glBindVertexArray(vaoId);
-		glEnableVertexAttribArray(vertexAttribute);
-		glEnableVertexAttribArray(colorAttribute);
-		glEnableVertexAttribArray(sizeAttribute);
+		glBindVertexArray(m_vaoId);
+		glEnableVertexAttribArray(m_vertexAttribute);
+		glEnableVertexAttribArray(m_colorAttribute);
+		glEnableVertexAttribArray(m_sizeAttribute);
 
 		// Vertex buffer
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[0]);
-		glVertexAttribPointer(vertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
+		glVertexAttribPointer(m_vertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[1]);
-		glVertexAttribPointer(colorAttribute, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-		glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
+		glVertexAttribPointer(m_colorAttribute, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[2]);
-		glVertexAttribPointer(sizeAttribute, 1, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-		glBufferData(GL_ARRAY_BUFFER, sizeof(sizes), sizes, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[2]);
+		glVertexAttribPointer(m_sizeAttribute, 1, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_sizes), m_sizes, GL_DYNAMIC_DRAW);
 
 		sCheckGLError();
 
@@ -224,61 +249,61 @@ struct GLRenderPoints
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 
-		count = 0;
+		m_count = 0;
 	}
 
 	void Destroy()
 	{
-		if (vaoId)
+		if (m_vaoId)
 		{
-			glDeleteVertexArrays(1, &vaoId);
-			glDeleteBuffers(3, vboIds);
-			vaoId = 0;
+			glDeleteVertexArrays(1, &m_vaoId);
+			glDeleteBuffers(3, m_vboIds);
+			m_vaoId = 0;
 		}
 
-		if (programId)
+		if (m_programId)
 		{
-			glDeleteProgram(programId);
-			programId = 0;
+			glDeleteProgram(m_programId);
+			m_programId = 0;
 		}
 	}
 
 	void Vertex(const b2Vec2 &v, const b2Color &c, float size)
 	{
-		if (count == e_maxVertices)
+		if (m_count == e_maxVertices)
 			Flush();
 
-		vertices[count] = v;
-		colors[count] = c;
-		sizes[count] = size;
-		++count;
+		m_vertices[m_count] = v;
+		m_colors[m_count] = c;
+		m_sizes[m_count] = size;
+		++m_count;
 	}
 
 	void Flush()
 	{
-		if (count == 0)
+		if (m_count == 0)
 			return;
 
-		glUseProgram(programId);
+		glUseProgram(m_programId);
 
 		float proj[16] = {0.0f};
-		viewport->buildProjectionMatrix(proj, 0.0f);
+		g_camera.BuildProjectionMatrix(proj, 0.0f);
 
-		glUniformMatrix4fv(projectionUniform, 1, GL_FALSE, proj);
+		glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, proj);
 
-		glBindVertexArray(vaoId);
+		glBindVertexArray(m_vaoId);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[0]);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(b2Vec2), vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Vec2), m_vertices);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[1]);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(b2Color), colors);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Color), m_colors);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[2]);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(float), sizes);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[2]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(float), m_sizes);
 
 		glEnable(GL_PROGRAM_POINT_SIZE);
-		glDrawArrays(GL_POINTS, 0, count);
+		glDrawArrays(GL_POINTS, 0, m_count);
 		glDisable(GL_PROGRAM_POINT_SIZE);
 
 		sCheckGLError();
@@ -287,37 +312,31 @@ struct GLRenderPoints
 		glBindVertexArray(0);
 		glUseProgram(0);
 
-		count = 0;
+		m_count = 0;
 	}
 
 	enum
 	{
 		e_maxVertices = 512
 	};
-	b2Vec2 vertices[e_maxVertices];
-	b2Color colors[e_maxVertices];
-	float sizes[e_maxVertices];
+	b2Vec2 m_vertices[e_maxVertices];
+	b2Color m_colors[e_maxVertices];
+	float m_sizes[e_maxVertices];
 
-	int32 count;
+	int32 m_count;
 
-	GLuint vaoId;
-	GLuint vboIds[3];
-	GLuint programId;
-	GLint projectionUniform;
-	GLint vertexAttribute;
-	GLint colorAttribute;
-	GLint sizeAttribute;
-	Viewport *viewport;
+	GLuint m_vaoId;
+	GLuint m_vboIds[3];
+	GLuint m_programId;
+	GLint m_projectionUniform;
+	GLint m_vertexAttribute;
+	GLint m_colorAttribute;
+	GLint m_sizeAttribute;
 };
 
 //
 struct GLRenderLines
 {
-	GLRenderLines(Viewport *vp)
-	{
-		viewport = vp;
-	}
-
 	void Create()
 	{
 		const char *vs =
@@ -341,27 +360,27 @@ struct GLRenderLines
 			"	color = f_color;\n"
 			"}\n";
 
-		programId = sCreateShaderProgram(vs, fs);
-		projectionUniform = glGetUniformLocation(programId, "projectionMatrix");
-		vertexAttribute = 0;
-		colorAttribute = 1;
+		m_programId = sCreateShaderProgram(vs, fs);
+		m_projectionUniform = glGetUniformLocation(m_programId, "projectionMatrix");
+		m_vertexAttribute = 0;
+		m_colorAttribute = 1;
 
 		// Generate
-		glGenVertexArrays(1, &vaoId);
-		glGenBuffers(2, vboIds);
+		glGenVertexArrays(1, &m_vaoId);
+		glGenBuffers(2, m_vboIds);
 
-		glBindVertexArray(vaoId);
-		glEnableVertexAttribArray(vertexAttribute);
-		glEnableVertexAttribArray(colorAttribute);
+		glBindVertexArray(m_vaoId);
+		glEnableVertexAttribArray(m_vertexAttribute);
+		glEnableVertexAttribArray(m_colorAttribute);
 
 		// Vertex buffer
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[0]);
-		glVertexAttribPointer(vertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
+		glVertexAttribPointer(m_vertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[1]);
-		glVertexAttribPointer(colorAttribute, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-		glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
+		glVertexAttribPointer(m_colorAttribute, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW);
 
 		sCheckGLError();
 
@@ -369,56 +388,56 @@ struct GLRenderLines
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 
-		count = 0;
+		m_count = 0;
 	}
 
 	void Destroy()
 	{
-		if (vaoId)
+		if (m_vaoId)
 		{
-			glDeleteVertexArrays(1, &vaoId);
-			glDeleteBuffers(2, vboIds);
-			vaoId = 0;
+			glDeleteVertexArrays(1, &m_vaoId);
+			glDeleteBuffers(2, m_vboIds);
+			m_vaoId = 0;
 		}
 
-		if (programId)
+		if (m_programId)
 		{
-			glDeleteProgram(programId);
-			programId = 0;
+			glDeleteProgram(m_programId);
+			m_programId = 0;
 		}
 	}
 
 	void Vertex(const b2Vec2 &v, const b2Color &c)
 	{
-		if (count == e_maxVertices)
+		if (m_count == e_maxVertices)
 			Flush();
 
-		vertices[count] = v;
-		colors[count] = c;
-		++count;
+		m_vertices[m_count] = v;
+		m_colors[m_count] = c;
+		++m_count;
 	}
 
 	void Flush()
 	{
-		if (count == 0)
+		if (m_count == 0)
 			return;
 
-		glUseProgram(programId);
+		glUseProgram(m_programId);
 
 		float proj[16] = {0.0f};
-		viewport->buildProjectionMatrix(proj, 0.1f);
+		g_camera.BuildProjectionMatrix(proj, 0.1f);
 
-		glUniformMatrix4fv(projectionUniform, 1, GL_FALSE, proj);
+		glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, proj);
 
-		glBindVertexArray(vaoId);
+		glBindVertexArray(m_vaoId);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[0]);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(b2Vec2), vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Vec2), m_vertices);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[1]);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(b2Color), colors);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Color), m_colors);
 
-		glDrawArrays(GL_LINES, 0, count);
+		glDrawArrays(GL_LINES, 0, m_count);
 
 		sCheckGLError();
 
@@ -426,35 +445,29 @@ struct GLRenderLines
 		glBindVertexArray(0);
 		glUseProgram(0);
 
-		count = 0;
+		m_count = 0;
 	}
 
 	enum
 	{
 		e_maxVertices = 2 * 512
 	};
-	b2Vec2 vertices[e_maxVertices];
-	b2Color colors[e_maxVertices];
+	b2Vec2 m_vertices[e_maxVertices];
+	b2Color m_colors[e_maxVertices];
 
-	int32 count;
+	int32 m_count;
 
-	GLuint vaoId;
-	GLuint vboIds[2];
-	GLuint programId;
-	GLint projectionUniform;
-	GLint vertexAttribute;
-	GLint colorAttribute;
-	Viewport *viewport;
+	GLuint m_vaoId;
+	GLuint m_vboIds[2];
+	GLuint m_programId;
+	GLint m_projectionUniform;
+	GLint m_vertexAttribute;
+	GLint m_colorAttribute;
 };
 
 //
 struct GLRenderTriangles
 {
-	GLRenderTriangles(Viewport *vp)
-	{
-		viewport = vp;
-	}
-
 	void Create()
 	{
 		const char *vs =
@@ -478,27 +491,27 @@ struct GLRenderTriangles
 			"	color = f_color;\n"
 			"}\n";
 
-		programId = sCreateShaderProgram(vs, fs);
-		projectionUniform = glGetUniformLocation(programId, "projectionMatrix");
-		vertexAttribute = 0;
-		colorAttribute = 1;
+		m_programId = sCreateShaderProgram(vs, fs);
+		m_projectionUniform = glGetUniformLocation(m_programId, "projectionMatrix");
+		m_vertexAttribute = 0;
+		m_colorAttribute = 1;
 
 		// Generate
-		glGenVertexArrays(1, &vaoId);
-		glGenBuffers(2, vboIds);
+		glGenVertexArrays(1, &m_vaoId);
+		glGenBuffers(2, m_vboIds);
 
-		glBindVertexArray(vaoId);
-		glEnableVertexAttribArray(vertexAttribute);
-		glEnableVertexAttribArray(colorAttribute);
+		glBindVertexArray(m_vaoId);
+		glEnableVertexAttribArray(m_vertexAttribute);
+		glEnableVertexAttribArray(m_colorAttribute);
 
 		// Vertex buffer
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[0]);
-		glVertexAttribPointer(vertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
+		glVertexAttribPointer(m_vertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_vertices), m_vertices, GL_DYNAMIC_DRAW);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[1]);
-		glVertexAttribPointer(colorAttribute, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-		glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
+		glVertexAttribPointer(m_colorAttribute, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+		glBufferData(GL_ARRAY_BUFFER, sizeof(m_colors), m_colors, GL_DYNAMIC_DRAW);
 
 		sCheckGLError();
 
@@ -506,58 +519,58 @@ struct GLRenderTriangles
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 
-		count = 0;
+		m_count = 0;
 	}
 
 	void Destroy()
 	{
-		if (vaoId)
+		if (m_vaoId)
 		{
-			glDeleteVertexArrays(1, &vaoId);
-			glDeleteBuffers(2, vboIds);
-			vaoId = 0;
+			glDeleteVertexArrays(1, &m_vaoId);
+			glDeleteBuffers(2, m_vboIds);
+			m_vaoId = 0;
 		}
 
-		if (programId)
+		if (m_programId)
 		{
-			glDeleteProgram(programId);
-			programId = 0;
+			glDeleteProgram(m_programId);
+			m_programId = 0;
 		}
 	}
 
 	void Vertex(const b2Vec2 &v, const b2Color &c)
 	{
-		if (count == e_maxVertices)
+		if (m_count == e_maxVertices)
 			Flush();
 
-		vertices[count] = v;
-		colors[count] = c;
-		++count;
+		m_vertices[m_count] = v;
+		m_colors[m_count] = c;
+		++m_count;
 	}
 
 	void Flush()
 	{
-		if (count == 0)
+		if (m_count == 0)
 			return;
 
-		glUseProgram(programId);
+		glUseProgram(m_programId);
 
 		float proj[16] = {0.0f};
-		viewport->buildProjectionMatrix(proj, 0.2f);
+		g_camera.BuildProjectionMatrix(proj, 0.2f);
 
-		glUniformMatrix4fv(projectionUniform, 1, GL_FALSE, proj);
+		glUniformMatrix4fv(m_projectionUniform, 1, GL_FALSE, proj);
 
-		glBindVertexArray(vaoId);
+		glBindVertexArray(m_vaoId);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[0]);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(b2Vec2), vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[0]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Vec2), m_vertices);
 
-		glBindBuffer(GL_ARRAY_BUFFER, vboIds[1]);
-		glBufferSubData(GL_ARRAY_BUFFER, 0, count * sizeof(b2Color), colors);
+		glBindBuffer(GL_ARRAY_BUFFER, m_vboIds[1]);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, m_count * sizeof(b2Color), m_colors);
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glDrawArrays(GL_TRIANGLES, 0, count);
+		glDrawArrays(GL_TRIANGLES, 0, m_count);
 		glDisable(GL_BLEND);
 
 		sCheckGLError();
@@ -566,70 +579,68 @@ struct GLRenderTriangles
 		glBindVertexArray(0);
 		glUseProgram(0);
 
-		count = 0;
+		m_count = 0;
 	}
 
 	enum
 	{
 		e_maxVertices = 3 * 512
 	};
-	b2Vec2 vertices[e_maxVertices];
-	b2Color colors[e_maxVertices];
+	b2Vec2 m_vertices[e_maxVertices];
+	b2Color m_colors[e_maxVertices];
 
-	int32 count;
+	int32 m_count;
 
-	GLuint vaoId;
-	GLuint vboIds[2];
-	GLuint programId;
-	GLint projectionUniform;
-	GLint vertexAttribute;
-	GLint colorAttribute;
-	Viewport *viewport;
+	GLuint m_vaoId;
+	GLuint m_vboIds[2];
+	GLuint m_programId;
+	GLint m_projectionUniform;
+	GLint m_vertexAttribute;
+	GLint m_colorAttribute;
 };
 
 //
 DebugDraw::DebugDraw()
 {
-	showUI = true;
-	points = NULL;
-	lines = NULL;
-	triangles = NULL;
-	viewport = NULL;
+	m_showUI = true;
+	m_points = NULL;
+	m_lines = NULL;
+	m_triangles = NULL;
 }
 
 //
 DebugDraw::~DebugDraw()
 {
-	b2Assert(points == NULL);
-	b2Assert(lines == NULL);
-	b2Assert(triangles == NULL);
+	b2Assert(m_points == NULL);
+	b2Assert(m_lines == NULL);
+	b2Assert(m_triangles == NULL);
 }
 
 //
 void DebugDraw::Create()
 {
-	points = new GLRenderPoints(viewport);
-	points->Create();
-	lines = new GLRenderLines(viewport);
-	lines->Create();
-	triangles = new GLRenderTriangles(viewport);
-	triangles->Create();
+	m_points = new GLRenderPoints;
+	m_points->Create();
+	m_lines = new GLRenderLines;
+	m_lines->Create();
+	m_triangles = new GLRenderTriangles;
+	m_triangles->Create();
 }
 
 //
 void DebugDraw::Destroy()
 {
-	points->Destroy();
-	delete points;
-	points = NULL;
+	m_points->Destroy();
+	delete m_points;
+	m_points = NULL;
 
-	lines->Destroy();
-	delete lines;
-	lines = NULL;
+	m_lines->Destroy();
+	delete m_lines;
+	m_lines = NULL;
 
-	triangles->Destroy();
-	delete triangles;
-	triangles = NULL;
+	m_triangles->Destroy();
+	delete m_triangles;
+	m_triangles = NULL;
 }
 
 //
@@ -639,8 +650,8 @@ void DebugDraw::DrawPolygon(const b2Vec2 *vertices, int32 vertexCount, const b2C
 	for (int32 i = 0; i < vertexCount; ++i)
 	{
 		b2Vec2 p2 = vertices[i];
-		lines->Vertex(p1, color);
-		lines->Vertex(p2, color);
+		m_lines->Vertex(p1, color);
+		m_lines->Vertex(p2, color);
 		p1 = p2;
 	}
 }
@@ -652,17 +663,17 @@ void DebugDraw::DrawSolidPolygon(const b2Vec2 *vertices, int32 vertexCount, cons
 
 	for (int32 i = 1; i < vertexCount - 1; ++i)
 	{
-		triangles->Vertex(vertices[0], fillColor);
-		triangles->Vertex(vertices[i], fillColor);
-		triangles->Vertex(vertices[i + 1], fillColor);
+		m_triangles->Vertex(vertices[0], fillColor);
+		m_triangles->Vertex(vertices[i], fillColor);
+		m_triangles->Vertex(vertices[i + 1], fillColor);
 	}
 
 	b2Vec2 p1 = vertices[vertexCount - 1];
 	for (int32 i = 0; i < vertexCount; ++i)
 	{
 		b2Vec2 p2 = vertices[i];
-		lines->Vertex(p1, color);
-		lines->Vertex(p2, color);
+		m_lines->Vertex(p1, color);
+		m_lines->Vertex(p2, color);
 		p1 = p2;
 	}
 }
@@ -683,8 +694,8 @@ void DebugDraw::DrawCircle(const b2Vec2 &center, float radius, const b2Color &co
 		r2.x = cosInc * r1.x - sinInc * r1.y;
 		r2.y = sinInc * r1.x + cosInc * r1.y;
 		b2Vec2 v2 = center + radius * r2;
-		lines->Vertex(v1, color);
-		lines->Vertex(v2, color);
+		m_lines->Vertex(v1, color);
+		m_lines->Vertex(v2, color);
 		r1 = r2;
 		v1 = v2;
 	}
@@ -708,9 +719,9 @@ void DebugDraw::DrawSolidCircle(const b2Vec2 &center, float radius, const b2Vec2
 		r2.x = cosInc * r1.x - sinInc * r1.y;
 		r2.y = sinInc * r1.x + cosInc * r1.y;
 		b2Vec2 v2 = center + radius * r2;
-		triangles->Vertex(v0, fillColor);
-		triangles->Vertex(v1, fillColor);
-		triangles->Vertex(v2, fillColor);
+		m_triangles->Vertex(v0, fillColor);
+		m_triangles->Vertex(v1, fillColor);
+		m_triangles->Vertex(v2, fillColor);
 		r1 = r2;
 		v1 = v2;
 	}
@@ -723,23 +734,23 @@ void DebugDraw::DrawSolidCircle(const b2Vec2 &center, float radius, const b2Vec2
 		r2.x = cosInc * r1.x - sinInc * r1.y;
 		r2.y = sinInc * r1.x + cosInc * r1.y;
 		b2Vec2 v2 = center + radius * r2;
-		lines->Vertex(v1, color);
-		lines->Vertex(v2, color);
+		m_lines->Vertex(v1, color);
+		m_lines->Vertex(v2, color);
 		r1 = r2;
 		v1 = v2;
 	}
 
 	// Draw a line fixed in the circle to animate rotation.
 	b2Vec2 p = center + radius * axis;
-	lines->Vertex(center, color);
-	lines->Vertex(p, color);
+	m_lines->Vertex(center, color);
+	m_lines->Vertex(p, color);
 }
 
 //
 void DebugDraw::DrawSegment(const b2Vec2 &p1, const b2Vec2 &p2, const b2Color &color)
 {
-	lines->Vertex(p1, color);
-	lines->Vertex(p2, color);
+	m_lines->Vertex(p1, color);
+	m_lines->Vertex(p2, color);
 }
 
 //
@@ -750,25 +761,25 @@ void DebugDraw::DrawTransform(const b2Transform &xf)
 	b2Color green(0.0f, 1.0f, 0.0f);
 	b2Vec2 p1 = xf.p, p2;
 
-	lines->Vertex(p1, red);
+	m_lines->Vertex(p1, red);
 	p2 = p1 + k_axisScale * xf.q.GetXAxis();
-	lines->Vertex(p2, red);
+	m_lines->Vertex(p2, red);
 
-	lines->Vertex(p1, green);
+	m_lines->Vertex(p1, green);
 	p2 = p1 + k_axisScale * xf.q.GetYAxis();
-	lines->Vertex(p2, green);
+	m_lines->Vertex(p2, green);
 }
 
 //
 void DebugDraw::DrawPoint(const b2Vec2 &p, float size, const b2Color &color)
 {
-	points->Vertex(p, color, size);
+	m_points->Vertex(p, color, size);
 }
 
 //
 void DebugDraw::DrawString(int x, int y, const char *string, ...)
 {
-	if (showUI == false)
+	if (m_showUI == false)
 	{
 		return;
 	}
@@ -785,7 +796,7 @@ void DebugDraw::DrawString(int x, int y, const char *string, ...)
 //
 void DebugDraw::DrawString(const b2Vec2 &pw, const char *string, ...)
 {
-	b2Vec2 ps = viewport->convertWorldToScreen(pw);
+	b2Vec2 ps = g_camera.ConvertWorldToScreen(pw);
 
 	va_list arg;
 	va_start(arg, string);
@@ -804,23 +815,23 @@ void DebugDraw::DrawAABB(b2AABB *aabb, const b2Color &c)
 	b2Vec2 p3 = aabb->upperBound;
 	b2Vec2 p4 = b2Vec2(aabb->lowerBound.x, aabb->upperBound.y);
 
-	lines->Vertex(p1, c);
-	lines->Vertex(p2, c);
+	m_lines->Vertex(p1, c);
+	m_lines->Vertex(p2, c);
 
-	lines->Vertex(p2, c);
-	lines->Vertex(p3, c);
+	m_lines->Vertex(p2, c);
+	m_lines->Vertex(p3, c);
 
-	lines->Vertex(p3, c);
-	lines->Vertex(p4, c);
+	m_lines->Vertex(p3, c);
+	m_lines->Vertex(p4, c);
 
-	lines->Vertex(p4, c);
-	lines->Vertex(p1, c);
+	m_lines->Vertex(p4, c);
+	m_lines->Vertex(p1, c);
 }
 
 //
 void DebugDraw::Flush()
 {
-	triangles->Flush();
-	lines->Flush();
-	points->Flush();
+	m_triangles->Flush();
+	m_lines->Flush();
+	m_points->Flush();
 }
