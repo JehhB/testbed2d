@@ -92,11 +92,6 @@ public:
 	virtual void MouseDown(const b2Vec2 &p);
 	virtual void MouseUp(const b2Vec2 &p);
 	virtual void MouseMove(const b2Vec2 &p);
-	void LaunchBomb();
-	void LaunchBomb(const b2Vec2 &position, const b2Vec2 &velocity);
-
-	void SpawnBomb(const b2Vec2 &worldPt);
-	void CompleteBombSpawn(const b2Vec2 &p);
 
 	// Let derived tests know that a joint was destroyed.
 	virtual void JointDestroyed(b2Joint *joint) { B2_NOT_USED(joint); }
@@ -125,10 +120,7 @@ protected:
 	DestructionListener m_destructionListener;
 	int32 m_textLine;
 	b2World *m_world;
-	b2Body *m_bomb;
 	b2MouseJoint *m_mouseJoint;
-	b2Vec2 m_bombSpawnPoint;
-	bool m_bombSpawning;
 	b2Vec2 m_mouseWorld;
 	int32 m_stepCount;
 	int32 m_textIncrement;

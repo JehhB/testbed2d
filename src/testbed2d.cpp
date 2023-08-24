@@ -185,18 +185,11 @@ static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, i
 			s_test = g_testEntries[s_settings.m_testIndex].createFcn();
 			break;
 
-		case GLFW_KEY_SPACE:
-			// Launch a bomb.
-			if (s_test)
-			{
-				s_test->LaunchBomb();
-			}
-			break;
-
 		case GLFW_KEY_O:
 			s_settings.m_singleStep = true;
 			break;
 
+		case GLFW_KEY_SPACE:
 		case GLFW_KEY_P:
 			s_settings.m_pause = !s_settings.m_pause;
 			break;
