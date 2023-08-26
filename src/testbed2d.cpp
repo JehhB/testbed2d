@@ -214,12 +214,90 @@ static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, i
 
 		case GLFW_KEY_TAB:
 			g_debugDraw.m_showUI = !g_debugDraw.m_showUI;
+			break;
 
 		default:
 			if (s_test)
 			{
 				s_test->Keyboard(key);
 			}
+		}
+	}
+	else if (action == GLFW_REPEAT)
+	{
+		switch (key)
+		{
+		case GLFW_KEY_LEFT:
+			// Pan left
+			if (mods == GLFW_MOD_CONTROL)
+			{
+				b2Vec2 newOrigin(2.0f, 0.0f);
+				s_test->ShiftOrigin(newOrigin);
+			}
+			else
+			{
+				g_camera.m_center.x -= 0.5f;
+			}
+			break;
+
+		case GLFW_KEY_RIGHT:
+			// Pan right
+			if (mods == GLFW_MOD_CONTROL)
+			{
+				b2Vec2 newOrigin(-2.0f, 0.0f);
+				s_test->ShiftOrigin(newOrigin);
+			}
+			else
+			{
+				g_camera.m_center.x += 0.5f;
+			}
+			break;
+
+		case GLFW_KEY_DOWN:
+			// Pan down
+			if (mods == GLFW_MOD_CONTROL)
+			{
+				b2Vec2 newOrigin(0.0f, 2.0f);
+				s_test->ShiftOrigin(newOrigin);
+			}
+			else
+			{
+				g_camera.m_center.y -= 0.5f;
+			}
+			break;
+
+		case GLFW_KEY_UP:
+			// Pan up
+			if (mods == GLFW_MOD_CONTROL)
+			{
+				b2Vec2 newOrigin(0.0f, -2.0f);
+				s_test->ShiftOrigin(newOrigin);
+			}
+			else
+			{
+				g_camera.m_center.y += 0.5f;
+			}
+			break;
+
+		case GLFW_KEY_Z:
+			// Zoom out
+			g_camera.m_zoom = b2Min(1.1f * g_camera.m_zoom, 20.0f);
+			break;
+
+		case GLFW_KEY_O:
+			s_settings.m_singleStep = true;
+			break;
+
+		case GLFW_KEY_X:
+			// Zoom in
+			g_camera.m_zoom = b2Max(0.9f * g_camera.m_zoom, 0.02f);
+			break;
+		default:
+			if (s_test)
+			{
+				s_test->Keyboard(key);
+			}
+			break;
 		}
 	}
 	else if (action == GLFW_RELEASE)
