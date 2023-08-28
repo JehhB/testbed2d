@@ -720,7 +720,7 @@ extern "C" {
  *
  *  @analysis The installed graphics driver does not support the requested
  *  API, or does not support it via the chosen context creation backend.
- *  Below are a few examples.
+ *  Below are a few example.
  *
  *  @par
  *  Some pre-installed Windows graphics drivers do not support OpenGL.  AMD only

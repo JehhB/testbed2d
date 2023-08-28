@@ -29,11 +29,17 @@
 #include <testbed2d/test.h>
 
 #include <imgui.h>
+
+#ifdef PLATFORMIO
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+#else
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+#endif
 
 #include <algorithm>
-#include <stdio.h>
+#include <cstdio>
 #include <thread>
 #include <chrono>
 
