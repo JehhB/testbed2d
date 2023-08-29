@@ -172,7 +172,7 @@ static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, i
 		case GLFW_KEY_HOME:
 			// Reset view
 			g_camera.m_zoom = 1.0f;
-			g_camera.m_center.Set(0.0f, 20.0f);
+			g_camera.m_center.Set(0.0f, 0.0f);
 			break;
 
 		case GLFW_KEY_Z:
@@ -621,6 +621,7 @@ int StartTestBed()
 		glViewport(0, 0, bufferWidth, bufferHeight);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -663,7 +664,7 @@ int StartTestBed()
 			delete s_test;
 			s_test = g_testEntries[s_settings.m_testIndex].createFcn();
 			g_camera.m_zoom = 1.0f;
-			g_camera.m_center.Set(0.0f, 20.0f);
+			g_camera.m_center.Set(0.0f, 0.0f);
 		}
 
 		glfwPollEvents();

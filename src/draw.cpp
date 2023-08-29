@@ -28,6 +28,7 @@
 #include <imgui.h>
 
 #define BUFFER_OFFSET(x) ((const void *)(x))
+#define ZOOM_SCALE 2.5f
 
 DebugDraw g_debugDraw;
 Camera g_camera;
@@ -41,7 +42,7 @@ b2Vec2 Camera::ConvertScreenToWorld(const b2Vec2 &ps)
 	float v = (h - ps.y) / h;
 
 	float ratio = w / h;
-	b2Vec2 extents(ratio * 25.0f, 25.0f);
+	b2Vec2 extents(ratio * ZOOM_SCALE, ZOOM_SCALE);
 	extents *= m_zoom;
 
 	b2Vec2 lower = m_center - extents;
@@ -59,7 +60,7 @@ b2Vec2 Camera::ConvertWorldToScreen(const b2Vec2 &pw)
 	float w = float(m_width);
 	float h = float(m_height);
 	float ratio = w / h;
-	b2Vec2 extents(ratio * 25.0f, 25.0f);
+	b2Vec2 extents(ratio * ZOOM_SCALE, ZOOM_SCALE);
 	extents *= m_zoom;
 
 	b2Vec2 lower = m_center - extents;
@@ -81,7 +82,7 @@ void Camera::BuildProjectionMatrix(float *m, float zBias)
 	float w = float(m_width);
 	float h = float(m_height);
 	float ratio = w / h;
-	b2Vec2 extents(ratio * 25.0f, 25.0f);
+	b2Vec2 extents(ratio * ZOOM_SCALE, ZOOM_SCALE);
 	extents *= m_zoom;
 
 	b2Vec2 lower = m_center - extents;

@@ -108,6 +108,8 @@ public:
 
 	void ShiftOrigin(const b2Vec2 &newOrigin);
 
+	b2World* getWorld() { return m_world; }
+
 protected:
 	friend class DestructionListener;
 	friend class BoundaryListener;
