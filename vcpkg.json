@@ -3,7 +3,6 @@
   "dependencies": [
     "box2d",
     "glfw3",
-    "glad",
     {
       "name": "imgui",
       "features": [

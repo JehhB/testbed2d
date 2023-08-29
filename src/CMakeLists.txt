@@ -10,8 +10,8 @@ add_library(testbed2d STATIC
 target_include_directories(testbed2d PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../include")
 
 target_link_libraries(testbed2d PUBLIC
+        glad
         box2d::box2d
-        glad::glad
         imgui::imgui
         glfw
 )
