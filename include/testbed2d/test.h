@@ -109,6 +109,7 @@ public:
 	void ShiftOrigin(const b2Vec2 &newOrigin);
 
 	b2World* getWorld() { return m_world; }
+	b2Body* getGroundBody() { return m_groundBody;  }
 
 protected:
 	friend class DestructionListener;

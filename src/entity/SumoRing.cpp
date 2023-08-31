@@ -14,7 +14,7 @@ SumoRing::SumoRing(Test *test) {
     sumoRingBodyDef.type = b2_staticBody;
     sumoRingBodyDef.position.Set(0, 0);
 
-    b2Body *sumoRingBody = m_test->getWorld()->CreateBody(&sumoRingBodyDef);
+    m_body = m_test->getWorld()->CreateBody(&sumoRingBodyDef);
 
     for (const std::array<int, 3> triangle : mesh.triangles) {
         b2Vec2 points[4];
@@ -27,6 +27,6 @@ SumoRing::SumoRing(Test *test) {
 
         b2FixtureDef fixtureDef;
         fixtureDef.shape = &triangleShape;
-        sumoRingBody->CreateFixture(&fixtureDef);
+        m_body->CreateFixture(&fixtureDef);
     }
 }
