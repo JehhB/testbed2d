@@ -1,22 +1,27 @@
 #include <testbed2d/entity.h>
 
-DifferentialDriveCar::DifferentialDriveCar(Test* test) :
-	m_leftWheel(test), m_rightWheel(test) 
+static const b2Vec2 LEFT_WHEEL_POSITION(-0.075f, -0.025f);
+static const b2Vec2 RIGHT_WHEEL_POSITION(0.075f, -0.025f);
+
+DifferentialDriveCar::DifferentialDriveCar(Test* test, const b2Vec2& position, float angle)
+	: Entity(test, b2_dynamicBody, position, angle)
+	, m_leftWheel(test, m_body->GetWorldPoint(LEFT_WHEEL_POSITION), angle)
+	, m_rightWheel(test, m_body->GetWorldPoint(RIGHT_WHEEL_POSITION), angle)
 {
+	setDrag(0.5f);
+	setMaxLateralImpulse(0.1f);
+}
+
+b2Fixture* DifferentialDriveCar::setup() {
 	m_leftWheel.setup();
 	m_rightWheel.setup();
 
-	m_test = test;
-	setDrag(0.5f);
-	setMaxLateralImpulse(0.1f);
-
-	b2BodyDef bodyDef;
-	bodyDef.type = b2_dynamicBody;
-	m_body = m_test->getWorld()->CreateBody(&bodyDef); 
-
 	b2PolygonShape shape;
 	shape.SetAsBox(0.08f, 0.1f);
-	m_body->CreateFixture(&shape, 1.0f);
+
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &shape;
+	fixtureDef.density = 1.0f;
 
 	b2WeldJointDef jointDef;
 	jointDef.bodyA = m_body;
@@ -26,19 +31,26 @@ DifferentialDriveCar::DifferentialDriveCar(Test* test) :
 
 	jointDef.bodyB = m_leftWheel.getBody();
 	jointDef.localAnchorA.Set(-0.075f, -0.025f);
-	m_test->getWorld()->CreateJoint(&jointDef);
+	getWorld()->CreateJoint(&jointDef);
 
 	jointDef.bodyB = m_rightWheel.getBody();
 	jointDef.localAnchorA.Set(0.075f, -0.025f);
-	m_test->getWorld()->CreateJoint(&jointDef);
+	getWorld()->CreateJoint(&jointDef);
+
+	return Entity::setup(fixtureDef);
 }
 
-float DifferentialDriveCar::getDrag() const {
-	return m_drag;
+void DifferentialDriveCar::step(Settings& settings) {
+	m_leftWheel.step(settings);
+	m_rightWheel.step(settings);
 }
 
-float DifferentialDriveCar::getMaxLateralImpulse() const {
-	return m_maxLateralImpulse;
+void DifferentialDriveCar::setForceLeft(float forceLeft) {
+	m_leftWheel.setForce(forceLeft);
+}
+
+void DifferentialDriveCar::setForceRight(float forceRight) {
+	m_rightWheel.setForce(forceRight);
 }
 
 void DifferentialDriveCar::setDrag(float drag) {
@@ -53,10 +65,19 @@ void DifferentialDriveCar::setMaxLateralImpulse(float maxLateralImpulse) {
 	m_maxLateralImpulse = maxLateralImpulse;
 }
 
-void DifferentialDriveCar::step(Settings& settings, float forceLeft, float forceRight) {
-	m_leftWheel.setForce(forceLeft);
-	m_rightWheel.setForce(forceRight);
-
-	m_leftWheel.step(settings);
-	m_rightWheel.step(settings);
+float DifferentialDriveCar::getForceLeft() const {
+	return m_leftWheel.getForce();
 }
+
+float DifferentialDriveCar::getForceRight() const {
+	return m_rightWheel.getForce();
+}
+
+float DifferentialDriveCar::getDrag() const {
+	return m_drag;
+}
+
+float DifferentialDriveCar::getMaxLateralImpulse() const {
+	return m_maxLateralImpulse;
+}
+

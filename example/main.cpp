@@ -11,11 +11,15 @@ public:
     {
         m_world->SetGravity(b2Vec2(0, 0));
         m_sumoRing.setup();
+        m_car.setup();
     }
 
     void Step(Settings &settings) override
 	{
-        m_car.step(settings, forceLeft, forceRight);
+        m_car.setForceLeft(forceLeft);
+        m_car.setForceRight(forceRight);
+
+        m_car.step(settings);
 		Test::Step(settings);
 	}
 

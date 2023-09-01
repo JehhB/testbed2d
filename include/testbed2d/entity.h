@@ -54,25 +54,30 @@ protected:
     float m_drag;
 };
 
-class DifferentialDriveCar {
+class DifferentialDriveCar : public Entity {
 public:
-    DifferentialDriveCar(Test *test);
+    DifferentialDriveCar(Test *test, const b2Vec2& position = b2Vec2_zero, float angle = 0.0f);
 
-    void step(Settings& settings, float forceLeft, float forceRight);
+    b2Fixture* setup() override;
 
-    b2Body* m_body;
-    Wheel m_leftWheel;
-    Wheel m_rightWheel;
-    Test* m_test;
+    void step(Settings& settings) override;
 
-    float getMaxLateralImpulse() const;
-    float getDrag() const;
+    void setForceLeft(float forceLeft);
+    void setForceRight(float forceRight);
     void setMaxLateralImpulse(float maxLateralImpulse);
     void setDrag(float drag);
 
-private:
+    float getForceLeft() const;
+    float getForceRight() const;
+    float getMaxLateralImpulse() const;
+    float getDrag() const;
+
+protected:
     float m_maxLateralImpulse;
     float m_drag;
+
+    Wheel m_leftWheel;
+    Wheel m_rightWheel;
 };
 
 #endif
