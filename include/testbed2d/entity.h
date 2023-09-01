@@ -9,7 +9,7 @@
 
 class Entity {
 public:
-    Entity(b2Body* body);
+    Entity(Test* test, b2Body* body);
     Entity(Test* test, b2BodyDef& bodyDef);
     Entity(Test* test, const b2BodyType& type, const b2Vec2& position = b2Vec2_zero, float angle = 0.0f);
     virtual ~Entity() {};
@@ -21,8 +21,11 @@ public:
 
     b2Body* getBody() const;
     b2World* getWorld() const;
+    Test* getTest() const;
+
 protected:
     b2Body* m_body;
+    Test* m_test;
 };
 
 class SumoRing : public Entity {

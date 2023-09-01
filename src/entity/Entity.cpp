@@ -8,15 +8,20 @@ static b2BodyDef createBodyDef(const b2BodyType &bodyType, const b2Vec2 &positio
 	return bodydef;
 }
 
-Entity::Entity(b2Body* body) : m_body(body) {
+Entity::Entity(Test* test, b2Body* body) 
+	: m_body(body) 
+	, m_test(test)
+{
 	m_body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
 }
 
-Entity::Entity(Test* test, b2BodyDef& bodydef) :
-	m_body(test->getWorld()->CreateBody(&bodydef)) {};
+Entity::Entity(Test* test, b2BodyDef& bodydef) 
+	: m_test(test)
+	, m_body(test->getWorld()->CreateBody(&bodydef)) {};
 
-Entity::Entity(Test* test, const b2BodyType &type, const b2Vec2 &position, float angle) :
-	m_body(test->getWorld()->CreateBody(&createBodyDef(type, position, angle))) {};
+Entity::Entity(Test* test, const b2BodyType& type, const b2Vec2& position, float angle)
+	: m_test(test)
+	, m_body(test->getWorld()->CreateBody(&createBodyDef(type, position, angle))) {};
 
 b2Fixture* Entity::setup(b2FixtureDef& fixtureDef) {
 	 return m_body->CreateFixture(&fixtureDef);
@@ -35,4 +40,8 @@ b2Body* Entity::getBody() const {
 
 b2World* Entity::getWorld() const {
 	return m_body->GetWorld();
+}
+
+Test* Entity::getTest() const {
+	return m_test;
 }
