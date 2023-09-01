@@ -15,6 +15,7 @@ public:
 
     void Step(Settings &settings) override
 	{
+        m_car.step(settings, forceLeft, forceRight);
 		Test::Step(settings);
 	}
 

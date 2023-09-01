@@ -1,20 +1,24 @@
 #include <testbed2d/entity.h>
 
-Wheel::Wheel(Test* test) {
-	m_test = test;
-	m_maxLateralImpulse = 0.1f;
-	m_drag = 0.5f;
+Wheel::Wheel(Test* test, const b2Vec2& position, float angle)
+	: Entity(test, b2_dynamicBody, position, angle)
+	, m_maxLateralImpulse(0.1f)
+	, m_drag(0.5f)
+	, m_force(0.0f)
+{}
 
-	b2BodyDef bodyDef;
-	bodyDef.type = b2_dynamicBody;
-	m_body = m_test->getWorld()->CreateBody(&bodyDef);
-
+b2Fixture* Wheel::setup() {
 	b2PolygonShape shape;
 	shape.SetAsBox(0.015f, 0.05f);
-	m_body->CreateFixture(&shape, 1.0);
+
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &shape;
+	fixtureDef.density = 1.0f;
+
+	return Entity::setup(fixtureDef);
 }
 
-void Wheel::step(Settings &settings, float forceMagnitude) {
+void Wheel::step(Settings &settings) {
 	if (!settings.m_pause) {
 		b2Vec2 v = m_body->GetLinearVelocity();
 		b2Vec2 vN = v;
@@ -28,9 +32,34 @@ void Wheel::step(Settings &settings, float forceMagnitude) {
 
 		m_body->ApplyLinearImpulse(m_maxLateralImpulse * lateralImpulse, m_body->GetWorldCenter(), true);
 		m_body->ApplyAngularImpulse(angularImpulse, true);
-		b2Vec2 force = forceMagnitude * y;
+		b2Vec2 force = m_force * y;
 		force -= m_drag * m_body->GetMass() / (1 / settings.m_hertz) * v;
 
 		m_body->ApplyForce(force, m_body->GetWorldCenter(), true);
 	}
+}
+
+
+void Wheel::setForce(float force) {
+	m_force = force;
+}
+
+void Wheel::setMaxLateralImpulse(float maxLateralImpulse) {
+	m_maxLateralImpulse = maxLateralImpulse;
+}
+
+void Wheel::setDrag(float drag) {
+	m_drag = drag;
+}
+
+float Wheel::getForce() const {
+	return m_force;
+}
+
+float Wheel::getMaxLateralImpulse() const {
+	return m_maxLateralImpulse;
+}
+
+float Wheel::getDrag() const {
+	return m_drag;
 }

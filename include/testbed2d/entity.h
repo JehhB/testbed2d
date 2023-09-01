@@ -32,16 +32,26 @@ public:
     b2Fixture* setup() override;
 };
 
-class Wheel {
+class Wheel : public Entity {
 public: 
-    Wheel(Test* test);
+    Wheel(Test* test, const b2Vec2& position = b2Vec2_zero, float angle = 0.0f);
 
-    void step(Settings& settings, float force);
+    b2Fixture* setup() override;
 
+    void step(Settings& settings) override;
+
+    void setForce(float force);
+    void setMaxLateralImpulse(float maxLateralImpulse);
+    void setDrag(float drag);
+
+    float getForce() const;
+    float getMaxLateralImpulse() const;
+    float getDrag() const;
+
+protected:
+    float m_force;
     float m_maxLateralImpulse;
     float m_drag;
-    Test* m_test;
-    b2Body* m_body;
 };
 
 class DifferentialDriveCar {
