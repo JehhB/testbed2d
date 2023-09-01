@@ -31,7 +31,6 @@ void Wheel::step(Settings &settings, float forceMagnitude) {
 		b2Vec2 force = forceMagnitude * y;
 		force -= m_drag * m_body->GetMass() / (1 / settings.m_hertz) * v;
 
-		g_debugDraw.DrawString(m_body->GetWorldCenter(), "%f %f", m_body->GetLinearVelocity().x, lateralImpulse.x);
 		m_body->ApplyForce(force, m_body->GetWorldCenter(), true);
 	}
 }

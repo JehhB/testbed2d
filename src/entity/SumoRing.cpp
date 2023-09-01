@@ -4,29 +4,30 @@
 
 #include "SumoRingObj.h"
 
-SumoRing::SumoRing(Test *test) {
-    m_test = test;
+SumoRing::SumoRing(Test* test, const b2Vec2& position)
+    : Entity(test, b2_staticBody, position, 0.0f)
+{}
 
+b2Fixture* SumoRing::setup() {
     Mesh mesh;
     mesh.loadFromObjString(SUMORING_OBJ);
 
-    b2BodyDef sumoRingBodyDef;
-    sumoRingBodyDef.type = b2_staticBody;
-    sumoRingBodyDef.position.Set(0, 0);
-
-    m_body = m_test->getWorld()->CreateBody(&sumoRingBodyDef);
-
-    for (const std::array<int, 3> triangle : mesh.triangles) {
-        b2Vec2 points[4];
-		for (int i = 0; i < 3; i++) {
-			points[2-i] = b2Vec2(mesh.vertices[triangle[i]][0], mesh.vertices[triangle[i]][2]);
-		}
+    for (int i = 0; i < mesh.triangles.size(); ++i) {
+        b2Vec2 points[3];
+        for (int j = 0; j < 3; j++) {
+            points[2 - j] = b2Vec2(
+                mesh.vertices[mesh.triangles[i][j]][0],
+                mesh.vertices[mesh.triangles[i][j]][2]
+            );
+        }
 
         b2PolygonShape triangleShape;
         triangleShape.Set(points, 3);
 
         b2FixtureDef fixtureDef;
         fixtureDef.shape = &triangleShape;
-        m_body->CreateFixture(&fixtureDef);
+        Entity::setup(fixtureDef);
     }
+
+    return nullptr;
 }

@@ -10,6 +10,7 @@ public:
         , m_car(this)
     {
         m_world->SetGravity(b2Vec2(0, 0));
+        m_sumoRing.setup();
     }
 
     void Step(Settings &settings) override
@@ -17,13 +18,20 @@ public:
 		Test::Step(settings);
 	}
 
+    void UpdateUI() override {
+        ImGui::Begin("Car");
+        ImGui::SliderFloat("Left", &forceLeft, -10.0f, 10.0f);
+        ImGui::SliderFloat("Right", &forceRight, -10.0f, 10.0f);
+        ImGui::End();
+    }
+
     static Test* Create()
 	{
 		return new Sumo;
 	}
 private:
-    float m_drag = 0.0f;
-    float m_maxLateralImpulse = 0.1f;
+    float forceLeft = 0.0f;
+    float forceRight = 0.0f;
 
     SumoRing m_sumoRing;
     DifferentialDriveCar m_car;
