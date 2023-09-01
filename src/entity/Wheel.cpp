@@ -2,8 +2,9 @@
 
 Wheel::Wheel(Test* test, const b2Vec2& position, float angle)
 	: Entity(test, b2_dynamicBody, position, angle)
-	, m_maxLateralImpulse(0.1f)
-	, m_drag(0.5f)
+	, m_maxLateralImpulse(1.0f)
+	, m_maxAngularImpulse(1.0f)
+	, m_drag(0.75f)
 	, m_force(0.0f)
 {}
 
@@ -28,10 +29,10 @@ void Wheel::step(Settings &settings) {
 		b2Vec2 y = m_body->GetWorldVector(b2Vec2(0, 1));
 		b2Vec2 lateralVelocity = b2Dot(v, x) * x;
 		b2Vec2 lateralImpulse = m_body->GetMass() * -lateralVelocity;
-		float angularImpulse = 0.1f * m_body->GetInertia() * -m_body->GetAngularVelocity();
+		float angularImpulse = m_body->GetInertia() * -m_body->GetAngularVelocity();
 
 		m_body->ApplyLinearImpulse(m_maxLateralImpulse * lateralImpulse, m_body->GetWorldCenter(), true);
-		m_body->ApplyAngularImpulse(angularImpulse, true);
+		m_body->ApplyAngularImpulse(m_maxAngularImpulse * angularImpulse, true);
 		b2Vec2 force = m_force * y;
 		force -= m_drag * m_body->GetMass() / (1 / settings.m_hertz) * v;
 
@@ -48,6 +49,10 @@ void Wheel::setMaxLateralImpulse(float maxLateralImpulse) {
 	m_maxLateralImpulse = maxLateralImpulse;
 }
 
+void Wheel::setMaxAngularImpulse(float maxAngularImpulse) {
+	m_maxAngularImpulse = maxAngularImpulse;
+}
+
 void Wheel::setDrag(float drag) {
 	m_drag = drag;
 }
@@ -58,6 +63,10 @@ float Wheel::getForce() const {
 
 float Wheel::getMaxLateralImpulse() const {
 	return m_maxLateralImpulse;
+}
+
+float Wheel::getMaxAngularImpulse() const {
+	return m_maxAngularImpulse;
 }
 
 float Wheel::getDrag() const {

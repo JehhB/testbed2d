@@ -45,15 +45,18 @@ public:
 
     void setForce(float force);
     void setMaxLateralImpulse(float maxLateralImpulse);
+    void setMaxAngularImpulse(float maxAngularImpulse);
     void setDrag(float drag);
 
     float getForce() const;
     float getMaxLateralImpulse() const;
+    float getMaxAngularImpulse() const;
     float getDrag() const;
 
 protected:
     float m_force;
     float m_maxLateralImpulse;
+    float m_maxAngularImpulse;
     float m_drag;
 };
 
@@ -68,17 +71,16 @@ public:
     void setForceLeft(float forceLeft);
     void setForceRight(float forceRight);
     void setMaxLateralImpulse(float maxLateralImpulse);
+    void setMaxAngularImpulse(float maxAngularImpulse);
     void setDrag(float drag);
 
     float getForceLeft() const;
     float getForceRight() const;
     float getMaxLateralImpulse() const;
+    float getMaxAngularImpulse() const;
     float getDrag() const;
 
 protected:
-    float m_maxLateralImpulse;
-    float m_drag;
-
     Wheel m_leftWheel;
     Wheel m_rightWheel;
 };

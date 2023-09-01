@@ -56,13 +56,16 @@ void DifferentialDriveCar::setForceRight(float forceRight) {
 void DifferentialDriveCar::setDrag(float drag) {
 	m_leftWheel.setDrag(drag);
 	m_rightWheel.setDrag(drag);
-	m_drag = drag;
 }
 
 void DifferentialDriveCar::setMaxLateralImpulse(float maxLateralImpulse) {
 	m_leftWheel.setMaxLateralImpulse(maxLateralImpulse);
 	m_rightWheel.setMaxLateralImpulse(maxLateralImpulse);
-	m_maxLateralImpulse = maxLateralImpulse;
+}
+
+void DifferentialDriveCar::setMaxAngularImpulse(float maxAngularImpulse) {
+	m_leftWheel.setMaxAngularImpulse(maxAngularImpulse);
+	m_rightWheel.setMaxAngularImpulse(maxAngularImpulse);
 }
 
 float DifferentialDriveCar::getForceLeft() const {
@@ -74,10 +77,14 @@ float DifferentialDriveCar::getForceRight() const {
 }
 
 float DifferentialDriveCar::getDrag() const {
-	return m_drag;
+	return m_leftWheel.getDrag();
 }
 
 float DifferentialDriveCar::getMaxLateralImpulse() const {
-	return m_maxLateralImpulse;
+	return m_leftWheel.getMaxAngularImpulse();
+}
+
+float DifferentialDriveCar::getMaxAngularImpulse() const {
+	return m_leftWheel.getMaxAngularImpulse();
 }
 
