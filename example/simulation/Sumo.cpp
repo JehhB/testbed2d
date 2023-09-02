@@ -172,4 +172,4 @@ private:
     DifferentialDriveCar m_car2;
 };
 
-static int testId = RegisterTest("Simulation", "Sumo", Sumo::Create);
+static int testId = RegisterTest("Simulation", "01 Sumo", Sumo::Create);

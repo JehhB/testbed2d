@@ -24,7 +24,9 @@ Entity::Entity(Test* test, const b2BodyType& type, const b2Vec2& position, float
 	, m_body(test->getWorld()->CreateBody(&createBodyDef(type, position, angle))) {};
 
 b2Fixture* Entity::setup(b2FixtureDef& fixtureDef) {
-	 return m_body->CreateFixture(&fixtureDef);
+	 b2Fixture *fixture = m_body->CreateFixture(&fixtureDef);
+	 fixture->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
+	 return fixture;
 }
 
 b2Fixture* Entity::setup() {

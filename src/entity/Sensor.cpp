@@ -1,8 +1,14 @@
 #include <testbed2d/entity.h>
 
+static bool isNotSensor(b2Fixture* fixture) {
+	Entity* entity = reinterpret_cast<Entity*>(fixture->GetUserData().pointer);
+	Sensor* sensor = dynamic_cast<Sensor*>(entity);
+	return sensor == nullptr;
+}
+
 static bool isSensors(b2Contact *contact, b2Fixture *sensor) {
-	return contact->GetFixtureA() == sensor && contact->GetFixtureB()->IsSensor() 
-		|| contact->GetFixtureB() == sensor && contact->GetFixtureA()->IsSensor();
+	return contact->GetFixtureA() == sensor && contact->GetFixtureB()->IsSensor() && isNotSensor(contact->GetFixtureB())
+		|| contact->GetFixtureB() == sensor && contact->GetFixtureA()->IsSensor() && isNotSensor(contact->GetFixtureA());
 }
 
 Sensor::Sensor(Test* test, const b2Vec2 &position) 

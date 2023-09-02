@@ -54,4 +54,4 @@ private:
 	Sensor sensor;
 };
 
-static int testId = RegisterTest("Simulation", "Sensor", SensorTest::Create);
+static int testId = RegisterTest("Simulation", "02 Sensor", SensorTest::Create);
