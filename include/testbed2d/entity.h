@@ -6,6 +6,7 @@
 #include <testbed2d/test.h>
 #include <testbed2d/settings.h>
 #include <box2d/box2d.h>
+#include <array>
 
 class Entity {
 public:
@@ -60,7 +61,24 @@ protected:
     float m_drag;
 };
 
-class DifferentialDriveCar : public Entity {
+class Sensor : public Entity, public b2ContactListener {
+public:
+    Sensor(Test* test, const b2Vec2& position = b2Vec2_zero);
+
+    b2Fixture* setup(b2FixtureDef& fixtureDef);
+    b2Fixture* setup() override;
+
+    void BeginContact(b2Contact* contact) override;
+    void EndContact(b2Contact* contact) override;
+
+    int getContactCount() const;
+    bool isActive() const;
+private:
+    int m_contactCount;
+    b2Fixture* m_fixture;
+};
+
+class DifferentialDriveCar : public Entity, public b2ContactListener {
 public:
     DifferentialDriveCar(Test *test, const b2Vec2& position = b2Vec2_zero, float angle = 0.0f);
 
@@ -80,26 +98,16 @@ public:
     float getMaxAngularImpulse() const;
     float getDrag() const;
 
+    void BeginContact(b2Contact *contact) override;
+    void EndContact(b2Contact *contact) override;
+
+    std::array<Wheel*, 2> getWheels();
+    std::array<Sensor*, 4> getSensors();
 protected:
     Wheel m_leftWheel;
     Wheel m_rightWheel;
-};
 
-class Sensor : public Entity, public b2ContactListener {
-public:
-    Sensor(Test* test, const b2Vec2& position = b2Vec2_zero);
-
-    b2Fixture* setup(b2FixtureDef& fixtureDef);
-    b2Fixture* setup() override;
-
-    void BeginContact(b2Contact* contact) override;
-    void EndContact(b2Contact* contact) override;
-
-    int getContactCount() const;
-    bool isActive() const;
-private:
-    int m_contactCount;
-    b2Fixture* m_fixture;
+    Sensor m_sensors[4];
 };
 
 #endif

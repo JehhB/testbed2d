@@ -1,7 +1,7 @@
 #include <testbed2d/entity.h>
 
 static bool isSensors(b2Contact *contact, b2Fixture *sensor) {
-	return contact->GetFixtureA() == sensor && contact->GetFixtureB()->IsSensor()
+	return contact->GetFixtureA() == sensor && contact->GetFixtureB()->IsSensor() 
 		|| contact->GetFixtureB() == sensor && contact->GetFixtureA()->IsSensor();
 }
 
@@ -22,6 +22,7 @@ b2Fixture* Sensor::setup() {
 
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circleShape;
+	fixtureDef.density = 0.1f;
 	fixtureDef.isSensor = true;
 	return setup(fixtureDef);
 }

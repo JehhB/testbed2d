@@ -9,6 +9,7 @@ public:
         : m_sumoRing(this)
         , m_car1(this, b2Vec2(-0.35f, 0), -90 * DEGTOGRAD)
         , m_car2(this, b2Vec2(0.35f, 0), 90 * DEGTOGRAD)
+        , m_sensors(m_car1.getSensors())
     {
         m_world->SetGravity(b2Vec2(0, 0));
         m_sumoRing.setup();
@@ -113,6 +114,14 @@ public:
         }
     }
 
+    void BeginContact(b2Contact* contact) override {
+        m_car1.BeginContact(contact);
+    }
+
+    void EndContact(b2Contact* contact) override {
+        m_car1.EndContact(contact);
+    }
+
     void UpdateUI() override {
         ImGui::Begin("Sumo Configuration");
 
@@ -126,6 +135,13 @@ public:
         ImGui::Text("Car 2 Settings");
         ImGui::SliderFloat("Force Left", &m_forceLeft, -1.0f, 1.0f);
         ImGui::SliderFloat("Force Right", &m_forceRight, -1.0f, 1.0f);
+
+        ImGui::Separator();
+
+        ImGui::Text("Line sensors");
+        for (int i = 0; i < m_sensors.size(); i++) {
+			ImGui::Text("Sensor %d: %s", i, m_sensors[i]->isActive() ? "active" : "inactive");
+		}
 
         ImGui::End();
     }
@@ -148,6 +164,8 @@ private:
 
     float m_forceLeft = 0.0f;
     float m_forceRight = 0.0f;
+
+    std::array<Sensor*, 4> m_sensors;
 
     SumoRing m_sumoRing;
     DifferentialDriveCar m_car1;
