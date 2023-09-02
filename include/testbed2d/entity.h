@@ -85,4 +85,21 @@ protected:
     Wheel m_rightWheel;
 };
 
+class Sensor : public Entity, public b2ContactListener {
+public:
+    Sensor(Test* test, const b2Vec2& position = b2Vec2_zero);
+
+    b2Fixture* setup(b2FixtureDef& fixtureDef);
+    b2Fixture* setup() override;
+
+    void BeginContact(b2Contact* contact) override;
+    void EndContact(b2Contact* contact) override;
+
+    int getContactCount() const;
+    bool isActive() const;
+private:
+    int m_contactCount;
+    b2Fixture* m_fixture;
+};
+
 #endif

@@ -26,6 +26,7 @@ b2Fixture* SumoRing::setup() {
 
         b2FixtureDef fixtureDef;
         fixtureDef.shape = &triangleShape;
+        fixtureDef.isSensor = true;
         Entity::setup(fixtureDef);
     }
 
