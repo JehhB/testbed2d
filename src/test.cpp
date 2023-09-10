@@ -22,7 +22,6 @@
 
 #include <testbed2d/test.h>
 #include <testbed2d/settings.h>
-#include <utility>
 #include <stdio.h>
 
 void DestructionListener::SayGoodbye(b2Joint *joint)
@@ -69,16 +68,16 @@ Test::~Test()
 }
 
 void Test::BeginContact(b2Contact* contact) {
-	Entity* entityA = m_entities.at(contact->GetFixtureA()->GetBody());
-	Entity* entityB = m_entities.at(contact->GetFixtureB()->GetBody());
+	Entity* entityA = reinterpret_cast<Entity*>(contact->GetFixtureA()->GetUserData().pointer);
+	Entity* entityB = reinterpret_cast<Entity*>(contact->GetFixtureB()->GetUserData().pointer);
 
 	entityA->BeginContact(contact);
 	entityB->BeginContact(contact);
 }
 
 void Test::EndContact(b2Contact* contact) {
-	Entity* entityA = m_entities.at(contact->GetFixtureA()->GetBody());
-	Entity* entityB = m_entities.at(contact->GetFixtureB()->GetBody());
+	Entity* entityA = reinterpret_cast<Entity*>(contact->GetFixtureA()->GetUserData().pointer);
+	Entity* entityB = reinterpret_cast<Entity*>(contact->GetFixtureB()->GetUserData().pointer);
 
 	entityA->EndContact(contact);
 	entityB->EndContact(contact);
@@ -116,8 +115,8 @@ void Test::PreSolve(b2Contact *contact, const b2Manifold *oldManifold)
 		++m_pointCount;
 	}
 
-	Entity* entityA = m_entities.at(fixtureA->GetBody());
-	Entity* entityB = m_entities.at(fixtureB->GetBody());
+	Entity* entityA = reinterpret_cast<Entity*>(fixtureA->GetUserData().pointer);
+	Entity* entityB = reinterpret_cast<Entity*>(fixtureB->GetUserData().pointer);
 
 	entityA->PreSolve(contact, oldManifold);
 	entityB->PreSolve(contact, oldManifold);
@@ -125,8 +124,8 @@ void Test::PreSolve(b2Contact *contact, const b2Manifold *oldManifold)
 
 void Test::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
 {
-	Entity* entityA = m_entities.at(contact->GetFixtureA()->GetBody());
-	Entity* entityB = m_entities.at(contact->GetFixtureB()->GetBody());
+	Entity* entityA = reinterpret_cast<Entity*>(contact->GetFixtureA()->GetUserData().pointer);
+	Entity* entityB = reinterpret_cast<Entity*>(contact->GetFixtureB()->GetUserData().pointer);
 
 	entityA->PostSolve(contact, impulse);
 	entityB->PostSolve(contact, impulse);
@@ -393,8 +392,7 @@ void Test::Step(Settings &settings)
 		}
 	}
 
-	for (const std::pair<b2Body*, Entity*>& pair : m_entities) {
-		Entity* entity = pair.second;
+	for (Entity* entity : m_entities) {
 		entity->step(settings);
 	}
 }

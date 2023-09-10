@@ -159,7 +159,7 @@ Wheel* DifferentialDriveCar::getRightWheel() {
 	return m_rightWheel;
 }
 
-std::set<Sensor*>* DifferentialDriveCar::getSensors() {
+std::unordered_set<Sensor*>* DifferentialDriveCar::getSensors() {
 	return &m_sensors;
 }
 

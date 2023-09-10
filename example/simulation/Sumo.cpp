@@ -162,7 +162,7 @@ private:
     float m_forceLeft = 0.0f;
     float m_forceRight = 0.0f;
 
-    std::set<Sensor*> *m_sensors;
+    std::unordered_set<Sensor*> *m_sensors;
 
     SumoRing m_sumoRing;
     DifferentialDriveCar m_car1;

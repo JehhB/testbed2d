@@ -13,12 +13,12 @@ Entity::Entity(Test* test, b2Body* body)
 	, m_test(test)
 {
 	m_body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
-	m_test->m_entities.insert({ body, this });
+	m_test->m_entities.insert(this);
 }
 
 Entity::~Entity() {
 	m_body->GetWorld()->DestroyBody(m_body);
-	m_test->m_entities.erase(m_body);
+	m_test->m_entities.erase(this);
 }
 
 Entity::Entity(Test* test, b2BodyDef& bodydef)

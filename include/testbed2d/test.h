@@ -26,8 +26,7 @@
 #include <box2d/box2d.h>
 #include <testbed2d/draw.h>
 #include <testbed2d/entity.h>
-#include <map>
-
+#include <unordered_set>
 #include <stdlib.h>
 
 struct Settings;
@@ -103,7 +102,6 @@ public:
 	virtual void EndContact(b2Contact *contact) override;
 	virtual void PreSolve(b2Contact *contact, const b2Manifold *oldManifold) override;
 	virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override;
-	
 
 	void ShiftOrigin(const b2Vec2 &newOrigin);
 
@@ -129,7 +127,7 @@ protected:
 	int32 m_textIncrement;
 	b2Profile m_maxProfile;
 	b2Profile m_totalProfile;
-	std::map<b2Body*, Entity*> m_entities;
+	std::unordered_set<Entity*> m_entities;
 };
 
 typedef Test *TestCreateFcn();

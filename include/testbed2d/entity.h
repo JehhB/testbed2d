@@ -6,10 +6,9 @@
 #include <testbed2d/test.h>
 #include <testbed2d/settings.h>
 #include <box2d/box2d.h>
-#include <set>
+#include <unordered_set>
 
 class Test;
-
 
 class Entity : public b2ContactListener {
 public:
@@ -126,12 +125,12 @@ public:
 
     Wheel* getLeftWheel();
     Wheel* getRightWheel();
-    std::set<Sensor*>* getSensors();
+    std::unordered_set<Sensor*>* getSensors();
 protected:
     Wheel* m_leftWheel;
     Wheel* m_rightWheel;
 
-    std::set<Sensor*> m_sensors;
+    std::unordered_set<Sensor*> m_sensors;
 };
 
 #endif
