@@ -8,8 +8,10 @@
 #include <box2d/box2d.h>
 #include <set>
 
+class Test;
 
-class Entity {
+
+class Entity : public b2ContactListener {
 public:
     Entity(Test* test, b2Body* body);
     Entity(Test* test, b2BodyDef& bodyDef);
@@ -20,6 +22,17 @@ public:
     virtual b2Fixture* setup();
 
     virtual void step(Settings& setting);
+
+    virtual void BeginContact(b2Contact* contact) override { B2_NOT_USED(contact); }
+    virtual void EndContact(b2Contact* contact) override { B2_NOT_USED(contact); }
+    virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold) override {
+        B2_NOT_USED(contact);
+        B2_NOT_USED(oldManifold);
+    }
+    virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override {
+        B2_NOT_USED(contact);
+        B2_NOT_USED(impulse);
+    }
 
     b2Body* getBody() const;
     b2World* getWorld() const;
@@ -62,7 +75,7 @@ protected:
     float m_drag;
 };
 
-class Sensor : public Entity, public b2ContactListener {
+class Sensor : public Entity {
 public:
     Sensor(Test* test, const b2Vec2& position = b2Vec2_zero);
 
@@ -79,7 +92,7 @@ private:
     b2Fixture* m_fixture;
 };
 
-class DifferentialDriveCar : public Entity, public b2ContactListener {
+class DifferentialDriveCar : public Entity {
 public:
 	static const b2Vec2 DEFAULT_LEFT_WHEEL_POSITION;
 	static const b2Vec2 DEFAULT_RIGHT_WHEEL_POSITION;
@@ -110,9 +123,6 @@ public:
     float getMaxLateralImpulse() const;
     float getMaxAngularImpulse() const;
     float getDrag() const;
-
-    void BeginContact(b2Contact *contact) override;
-    void EndContact(b2Contact *contact) override;
 
     Wheel* getLeftWheel();
     Wheel* getRightWheel();

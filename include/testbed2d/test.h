@@ -25,6 +25,8 @@
 
 #include <box2d/box2d.h>
 #include <testbed2d/draw.h>
+#include <testbed2d/entity.h>
+#include <map>
 
 #include <stdlib.h>
 
@@ -97,14 +99,11 @@ public:
 	virtual void JointDestroyed(b2Joint *joint) { B2_NOT_USED(joint); }
 
 	// Callbacks for derived classes.
-	virtual void BeginContact(b2Contact *contact) override { B2_NOT_USED(contact); }
-	virtual void EndContact(b2Contact *contact) override { B2_NOT_USED(contact); }
+	virtual void BeginContact(b2Contact* contact) override;
+	virtual void EndContact(b2Contact *contact) override;
 	virtual void PreSolve(b2Contact *contact, const b2Manifold *oldManifold) override;
-	virtual void PostSolve(b2Contact *contact, const b2ContactImpulse *impulse) override
-	{
-		B2_NOT_USED(contact);
-		B2_NOT_USED(impulse);
-	}
+	virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) override;
+	
 
 	void ShiftOrigin(const b2Vec2 &newOrigin);
 
@@ -115,6 +114,7 @@ protected:
 	friend class DestructionListener;
 	friend class BoundaryListener;
 	friend class ContactListener;
+	friend class Entity;
 
 	b2Body *m_groundBody;
 	b2AABB m_worldAABB;
@@ -129,6 +129,7 @@ protected:
 	int32 m_textIncrement;
 	b2Profile m_maxProfile;
 	b2Profile m_totalProfile;
+	std::map<b2Body*, Entity*> m_entities;
 };
 
 typedef Test *TestCreateFcn();

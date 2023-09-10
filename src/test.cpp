@@ -22,6 +22,7 @@
 
 #include <testbed2d/test.h>
 #include <testbed2d/settings.h>
+#include <utility>
 #include <stdio.h>
 
 void DestructionListener::SayGoodbye(b2Joint *joint)
@@ -67,6 +68,22 @@ Test::~Test()
 	m_world = NULL;
 }
 
+void Test::BeginContact(b2Contact* contact) {
+	Entity* entityA = m_entities.at(contact->GetFixtureA()->GetBody());
+	Entity* entityB = m_entities.at(contact->GetFixtureB()->GetBody());
+
+	entityA->BeginContact(contact);
+	entityB->BeginContact(contact);
+}
+
+void Test::EndContact(b2Contact* contact) {
+	Entity* entityA = m_entities.at(contact->GetFixtureA()->GetBody());
+	Entity* entityB = m_entities.at(contact->GetFixtureB()->GetBody());
+
+	entityA->EndContact(contact);
+	entityB->EndContact(contact);
+}
+
 void Test::PreSolve(b2Contact *contact, const b2Manifold *oldManifold)
 {
 	const b2Manifold *manifold = contact->GetManifold();
@@ -98,6 +115,21 @@ void Test::PreSolve(b2Contact *contact, const b2Manifold *oldManifold)
 		cp->separation = worldManifold.separations[i];
 		++m_pointCount;
 	}
+
+	Entity* entityA = m_entities.at(fixtureA->GetBody());
+	Entity* entityB = m_entities.at(fixtureB->GetBody());
+
+	entityA->PreSolve(contact, oldManifold);
+	entityB->PreSolve(contact, oldManifold);
+}
+
+void Test::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
+{
+	Entity* entityA = m_entities.at(contact->GetFixtureA()->GetBody());
+	Entity* entityB = m_entities.at(contact->GetFixtureB()->GetBody());
+
+	entityA->PostSolve(contact, impulse);
+	entityB->PostSolve(contact, impulse);
 }
 
 void Test::DrawTitle(const char *string)
@@ -359,6 +391,11 @@ void Test::Step(Settings &settings)
 				g_debugDraw.DrawSegment(p1, p2, b2Color(0.9f, 0.9f, 0.3f));
 			}
 		}
+	}
+
+	for (const std::pair<b2Body*, Entity*>& pair : m_entities) {
+		Entity* entity = pair.second;
+		entity->step(settings);
 	}
 }
 

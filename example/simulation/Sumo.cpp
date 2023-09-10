@@ -73,8 +73,6 @@ public:
         m_car1.setMaxAngularImpulse(m_maxAngularImpulse);
         m_car2.setMaxAngularImpulse(m_maxAngularImpulse);
 
-        m_car1.step(settings);
-        m_car2.step(settings);
 		Test::Step(settings);
 	}
 
@@ -118,14 +116,6 @@ public:
 		else if (key == GLFW_KEY_E) {
 			m_hardRight = false;
         }
-    }
-
-    void BeginContact(b2Contact* contact) override {
-        m_car1.BeginContact(contact);
-    }
-
-    void EndContact(b2Contact* contact) override {
-        m_car1.EndContact(contact);
     }
 
     void UpdateUI() override {

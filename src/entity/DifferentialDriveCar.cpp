@@ -151,18 +151,6 @@ float DifferentialDriveCar::getMaxAngularImpulse() const {
 	return 0;
 }
 
-void DifferentialDriveCar::BeginContact(b2Contact* contact) {
-	for (Sensor *sensor : m_sensors) {
-		sensor->BeginContact(contact);
-	}
-}
-
-void DifferentialDriveCar::EndContact(b2Contact* contact) {
-	for (Sensor *sensor : m_sensors) {
-		sensor->EndContact(contact);
-	}
-}
-
 Wheel* DifferentialDriveCar::getLeftWheel() {
 	return m_leftWheel;
 }

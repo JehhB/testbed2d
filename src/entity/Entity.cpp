@@ -13,19 +13,19 @@ Entity::Entity(Test* test, b2Body* body)
 	, m_test(test)
 {
 	m_body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
+	m_test->m_entities.insert({ body, this });
 }
 
 Entity::~Entity() {
 	m_body->GetWorld()->DestroyBody(m_body);
+	m_test->m_entities.erase(m_body);
 }
 
-Entity::Entity(Test* test, b2BodyDef& bodydef) 
-	: m_test(test)
-	, m_body(test->getWorld()->CreateBody(&bodydef)) {};
+Entity::Entity(Test* test, b2BodyDef& bodydef)
+	: Entity(test, test->getWorld()->CreateBody(&bodydef)) {};
 
 Entity::Entity(Test* test, const b2BodyType& type, const b2Vec2& position, float angle)
-	: m_test(test)
-	, m_body(test->getWorld()->CreateBody(&createBodyDef(type, position, angle))) {};
+	: Entity(test, createBodyDef(type, position, angle)) {};
 
 b2Fixture* Entity::setup(b2FixtureDef& fixtureDef) {
 	 b2Fixture *fixture = m_body->CreateFixture(&fixtureDef);

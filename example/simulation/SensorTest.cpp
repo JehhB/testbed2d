@@ -10,7 +10,6 @@ public:
 	{
 		m_world->SetGravity(b2Vec2_zero);
 
-
 		b2PolygonShape shape;
 		shape.SetAsBox(0.3f, 0.1f);
 		b2FixtureDef fixtureDef;
@@ -26,14 +25,6 @@ public:
 		fixtureDef.shape = &circle;
 
 		sensor.setup();
-	}
-
-	void BeginContact(b2Contact* contact) override {
-		sensor.BeginContact(contact);
-	}
-
-	void EndContact(b2Contact* contact) override {
-		sensor.EndContact(contact);
 	}
 
 	void UpdateUI() override {
