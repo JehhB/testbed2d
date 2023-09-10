@@ -6,14 +6,15 @@
 #include <testbed2d/test.h>
 #include <testbed2d/settings.h>
 #include <box2d/box2d.h>
-#include <array>
+#include <set>
+
 
 class Entity {
 public:
     Entity(Test* test, b2Body* body);
     Entity(Test* test, b2BodyDef& bodyDef);
     Entity(Test* test, const b2BodyType& type, const b2Vec2& position = b2Vec2_zero, float angle = 0.0f);
-    virtual ~Entity() {};
+    virtual ~Entity();
 
     virtual b2Fixture* setup(b2FixtureDef& fixtureDef);
     virtual b2Fixture* setup();
@@ -80,9 +81,21 @@ private:
 
 class DifferentialDriveCar : public Entity, public b2ContactListener {
 public:
+	static const b2Vec2 DEFAULT_LEFT_WHEEL_POSITION;
+	static const b2Vec2 DEFAULT_RIGHT_WHEEL_POSITION;
+    static const b2Vec2 DEFAULT_SENSOR_POSITIONS[4];
+
     DifferentialDriveCar(Test *test, const b2Vec2& position = b2Vec2_zero, float angle = 0.0f);
+    ~DifferentialDriveCar() override;
 
     b2Fixture* setup() override;
+    void setupWheels(const b2Vec2 &leftPosition = DEFAULT_LEFT_WHEEL_POSITION, const b2Vec2 &rightWheelPosition = DEFAULT_RIGHT_WHEEL_POSITION);
+    Wheel* setLeftWheel(Wheel *leftWheel, const b2Vec2 &postion);
+    Wheel* setRightWheel(Wheel *rightWheel, const b2Vec2 &position);
+
+    void setupSensors(const b2Vec2 sensorPositions[] = DEFAULT_SENSOR_POSITIONS, int count = 4);
+    Sensor* attachSensor(Sensor *sensor = nullptr, const b2Vec2 &positions = b2Vec2_zero);
+    void removeSensor(Sensor *sensor);
 
     void step(Settings& settings) override;
 
@@ -101,13 +114,14 @@ public:
     void BeginContact(b2Contact *contact) override;
     void EndContact(b2Contact *contact) override;
 
-    std::array<Wheel*, 2> getWheels();
-    std::array<Sensor*, 4> getSensors();
+    Wheel* getLeftWheel();
+    Wheel* getRightWheel();
+    std::set<Sensor*>* getSensors();
 protected:
-    Wheel m_leftWheel;
-    Wheel m_rightWheel;
+    Wheel* m_leftWheel;
+    Wheel* m_rightWheel;
 
-    Sensor m_sensors[4];
+    std::set<Sensor*> m_sensors;
 };
 
 #endif

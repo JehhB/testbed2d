@@ -17,6 +17,12 @@ public:
         m_car1.setup();
         m_car2.setup();
 
+        m_car1.setupWheels();
+        m_car1.setupSensors();
+
+        m_car2.setupWheels();
+        m_car2.setupSensors();
+
         m_maxLateralImpulse = m_car1.getMaxLateralImpulse();
         m_maxAngularImpulse = m_car1.getMaxAngularImpulse();
         m_drag = m_car1.getDrag();
@@ -139,8 +145,9 @@ public:
         ImGui::Separator();
 
         ImGui::Text("Line sensors");
-        for (int i = 0; i < m_sensors.size(); i++) {
-			ImGui::Text("Sensor %d: %s", i, m_sensors[i]->isActive() ? "active" : "inactive");
+        int i = 0;
+        for (Sensor *sensor: *m_sensors) {
+			ImGui::Text("Sensor %d: %s", ++i, sensor->isActive() ? "active" : "inactive");
 		}
 
         ImGui::End();
@@ -165,7 +172,7 @@ private:
     float m_forceLeft = 0.0f;
     float m_forceRight = 0.0f;
 
-    std::array<Sensor*, 4> m_sensors;
+    std::set<Sensor*> *m_sensors;
 
     SumoRing m_sumoRing;
     DifferentialDriveCar m_car1;

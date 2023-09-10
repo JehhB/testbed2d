@@ -15,6 +15,10 @@ Entity::Entity(Test* test, b2Body* body)
 	m_body->GetUserData().pointer = reinterpret_cast<uintptr_t>(this);
 }
 
+Entity::~Entity() {
+	m_body->GetWorld()->DestroyBody(m_body);
+}
+
 Entity::Entity(Test* test, b2BodyDef& bodydef) 
 	: m_test(test)
 	, m_body(test->getWorld()->CreateBody(&bodydef)) {};
