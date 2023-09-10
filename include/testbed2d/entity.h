@@ -74,11 +74,15 @@ protected:
     float m_drag;
 };
 
+class SensorCallback {
+public:
+    virtual bool shouldActivate(b2Fixture* fixture);
+};
+
 class Sensor : public Entity {
 public:
     Sensor(Test* test, const b2Vec2& position = b2Vec2_zero);
 
-    b2Fixture* setup(b2FixtureDef& fixtureDef);
     b2Fixture* setup() override;
 
     void BeginContact(b2Contact* contact) override;
@@ -86,9 +90,11 @@ public:
 
     int getContactCount() const;
     bool isActive() const;
+
+    void setSensorCallback(SensorCallback* sensorCallback);
 private:
     int m_contactCount;
-    b2Fixture* m_fixture;
+    SensorCallback* m_sensorCallback;
 };
 
 class DifferentialDriveCar : public Entity {
@@ -132,5 +138,6 @@ protected:
 
     std::unordered_set<Sensor*> m_sensors;
 };
+
 
 #endif
